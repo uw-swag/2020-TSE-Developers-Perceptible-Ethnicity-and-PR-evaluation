@@ -293,41 +293,6 @@ effect_size_glmer_model_ethnicities = anova(glmer_model_ethnicities,test='Chisq'
 print(effect_size_glmer_model_ethnicities)
 
 
-########### MODEL Submitter Interaction      ####################
-### With interaction term (prs_eth*pri_eth ) ####################
-### Submitor as random effect                ####################
-#################################################################
-
-model<-pr_status~repo_pr_tenure_mnth+
-  repo_pr_popularity+
-  repo_pr_team_size+
-  perc_external_contribs+
-  prs_succ_rate+
-  pr_files_changed +
-  prs_main_team_member+
-  prs_popularity+
-  prs_watched_repo+
-  prs_followed_pri+
-  prs_tenure_mnth+
-  pr_comments_counts+
-  pr_num_commits+
-  #prs_eth_8+
-  prs_eth_8*pri_eth_8 +
-  prs_experience+
-  pr_nth+
-  prs_continent+
-  prs_pri_same_nationality+
-  intra_branch+
-  (1|prs_id) + (1|repo_id)
-
-glmer_model_ethnicities<-glmer(model,data=eth_08_EU, family=binomial,control = glmerControl(optimizer = "nloptwrap", calc.derivs = FALSE, optCtrl = list(maxeval = 50)))
-print(summary(glmer_model_ethnicities), correlation=FALSE)
-car::vif(glmer_model_ethnicities)
-
-effect_size_glmer_model_ethnicities = anova(glmer_model_ethnicities,test='Chisq')
-print(effect_size_glmer_model_ethnicities)
-
-
 ########### MODEL Submitter_07  ##################
 ### Submitor as random effect   ##################
 ################################################
@@ -391,3 +356,61 @@ car::vif(glmer_model_ethnicities)
 
 effect_size_glmer_model_ethnicities = anova(glmer_model_ethnicities,test='Chisq')
 print(effect_size_glmer_model_ethnicities)
+
+
+########### MODEL FOR RQ2        #################
+### With Same ethnicity variable #################
+### Submitor as random effect    #################
+##################################################
+
+
+White_Hispanic <- eth_08_EU[which((eth_08_EU$pri_eth_8=="White" | eth_08_EU$pri_eth_8=="Hispanic") & (eth_08_EU$prs_eth_8=="Hispanic")),]
+White_API <- eth_08_EU[which((eth_08_EU$pri_eth_8=="White" | eth_08_EU$pri_eth_8=="API") & (eth_08_EU$prs_eth_8=="API")),]
+White_Black <- eth_08_EU[which((eth_08_EU$pri_eth_8=="White" | eth_08_EU$pri_eth_8=="Black") & (eth_08_EU$prs_eth_8=="Black")),]
+
+
+White_Hispanic$same_eth <- 0
+White_Hispanic[which(White_Hispanic$pri_eth_8=="Hispanic" & White_Hispanic$prs_eth_8=="Hispanic"),]$same_eth = 1
+White_Hispanic$same_eth<-factor(White_Hispanic$same_eth,levels=c(0,1))
+
+White_API$same_eth <- 0
+White_API[which(White_API$pri_eth_8=="API" & White_API$prs_eth_8=="API"),]$same_eth = 1
+White_API$same_eth<-factor(White_API$same_eth,levels=c(0,1))
+
+
+White_Black$same_eth <- 0
+White_Black[which(White_Black$pri_eth_8=="Black" & White_Black$prs_eth_8=="Black"),]$same_eth = 1
+White_Black$same_eth<-factor(White_Black$same_eth,levels=c(0,1))
+
+
+model<-pr_status~repo_pr_tenure_mnth+
+  repo_pr_popularity+
+  repo_pr_team_size+
+  perc_external_contribs+
+  prs_succ_rate+
+  pr_files_changed +
+  prs_main_team_member+
+  prs_popularity+
+  prs_watched_repo+
+  #prs_followed_pri+
+  prs_tenure_mnth+
+  pr_comments_counts+
+  pr_num_commits+
+  #prs_eth_8+
+  prs_experience+
+  pr_nth+
+  prs_continent+
+  prs_pri_same_nationality+
+  intra_branch+
+  same_eth+
+  (1|prs_id) + (1|repo_id)
+
+glmer_model_ethnicities<-glmer(model,data=White_Hispanic, family=binomial,control = glmerControl(optimizer = "nloptwrap", calc.derivs = FALSE, optCtrl = list(maxeval = 50)))
+print(summary(glmer_model_ethnicities), correlation=FALSE)
+car::vif(glmer_model_ethnicities)
+
+effect_size_glmer_model_ethnicities = anova(glmer_model_ethnicities,test='Chisq')
+print(effect_size_glmer_model_ethnicities)
+
+
+
